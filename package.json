@@ -1,0 +1,31 @@
+{
+  "name": "cw-carbonable",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Abdelhamid <abdel@carbonable.io>",
+  "scripts": {
+    "deploy": "ts-node scripts/src/commands/deploy.ts",
+    "maintenance": "ts-node scripts/src/commands/maintenance.ts",
+    "test:smoke": "ts-node scripts/src/commands/airdrop_2_buy_3.ts"
+  },
+  "dependencies": {
+    "@cosmjs/amino": "^0.27.0",
+    "@cosmjs/cosmwasm-stargate": "^0.27.0",
+    "@cosmjs/crypto": "^0.27.0",
+    "@cosmjs/encoding": "^0.27.0",
+    "@cosmjs/faucet-client": "^0.27.0",
+    "@cosmjs/launchpad": "^0.27.0",
+    "@cosmjs/math": "^0.27.0",
+    "@cosmjs/proto-signing": "^0.27.0",
+    "@cosmjs/stargate": "^0.27.0",
+    "@cosmjs/tendermint-rpc": "^0.27.0",
+    "@cosmjs/utils": "^0.27.0",
+    "@types/bignumber.js": "^5.0.0",
+    "@types/node": "^17.0.8",
+    "bignumber": "^1.1.0",
+    "bignumber.js": "^9.0.2",
+    "ts-node": "^10.4.0",
+    "tslog": "^3.3.1",
+    "typescript": "^4.5.4"
+  }
+}
