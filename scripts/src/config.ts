@@ -22,8 +22,8 @@ export let config: ObjAny = {
 
     // sell config
     sellPrice: 100,
-    sellReservedAmount: 1,
-    sellMarketAmount: 9999,
+    sellReservedAmount: 2,
+    sellMarketAmount: 9998,
 
     owner_mnemonic: process.env.OWNER_MNEMONIC,
     admin_mnemonic: process.env.ADMIN_MNEMONIC,
