@@ -28,6 +28,7 @@ async function connect() {
         const updateMetadataResponse = await sellContract.executeUpdateMetadata(Keychain.ADMIN, {
             name: config.collectionName,
             description: config.description,
+            external_url: "",
             attributes: [
                 {
                     trait_type: "name",
