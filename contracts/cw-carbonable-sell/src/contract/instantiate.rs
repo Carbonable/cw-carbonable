@@ -29,6 +29,7 @@ pub fn _instantiate(
         total_reserved_supply: 0,
         total_market_minted: 0,
         total_reserved_minted: 0,
+        max_buy_at_once: msg.max_buy_at_once,
         last_token_id: 0,
         sell_price: coin(0u128, String::from("ujuno")),
         metadata: Metadata {

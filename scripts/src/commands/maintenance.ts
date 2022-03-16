@@ -3,6 +3,7 @@
 import { Keychain } from '../core/keychain';
 import { logger } from '../core/logger';
 import {load} from "../core/core";
+import {config} from "../config";
 
 async function connect() {
     const { keychain, contracts, nftContract, sellContract, alreadyUploaded } = await load();
@@ -22,6 +23,9 @@ async function connect() {
     await sellContract.executeMaintenanceMode(Keychain.ADMIN, false);
     await sellContract.executeAirdrop(Keychain.ADMIN, []);
 
+
+    await sellContract.executMultieBuy(Keychain.ANON, { denom: config.denom, amount: (config.sellPrice * 5).toString()}, 5)
+    logger.info(await nftContract.queryNumTokens(Keychain.ANON));
     logger.info(await sellContract.queryState(Keychain.ANON));
 }
 

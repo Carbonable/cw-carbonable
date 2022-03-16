@@ -17,6 +17,7 @@ pub struct State {
     pub total_reserved_supply: u32,
     pub total_market_minted: u32,
     pub total_reserved_minted: u32,
+    pub max_buy_at_once: u32,
     pub last_token_id: u32,
     pub sell_price: Coin,
     pub metadata: Metadata,

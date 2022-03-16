@@ -15,6 +15,9 @@ pub enum ContractError {
     #[error("Not enought nft left")]
     NotEnoughNftLeft {},
 
+    #[error("Multibuy quantity too high>")]
+    MultiBuyQuantityTooHigh {},
+
     #[error("Invalid address {address:?}")]
     InvalidAddress { address: String },
 

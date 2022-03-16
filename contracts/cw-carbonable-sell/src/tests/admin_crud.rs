@@ -12,6 +12,7 @@ mod cw_carbonable {
     fn helper_instantiate(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) {
         let msg = InitMsg {
             maintenance_mode: false,
+            max_buy_at_once: 5,
         };
 
         let info = mock_info("owner_addr", &coins(1000, "earth"));

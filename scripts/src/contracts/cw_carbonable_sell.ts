@@ -1,8 +1,9 @@
-import { AbstractContract, Contract, ContractData, ContractRegistry } from '../core/contracts';
+import { AbstractContract,ContractData, ContractRegistry } from '../core/contracts';
 import { Keychain } from '../core/keychain';
 
-import {ExecuteResult} from "@cosmjs/cosmwasm-stargate/build/signingcosmwasmclient";
-import {Coin} from "@cosmjs/amino";
+import { ExecuteResult } from "@cosmjs/cosmwasm-stargate/build/signingcosmwasmclient";
+import { Coin } from "@cosmjs/amino";
+import { config } from "../config";
 
 export interface State {
     total_market_supply: number,
@@ -47,6 +48,7 @@ export class CwCarbonableSell implements AbstractContract {
     async instantiatePayload(): Promise<Record<string, unknown>> {
         return {
             maintenance_mode: false,
+            max_buy_at_once: config.maxBuyAtOnce,
         }
     }
 
@@ -58,11 +60,9 @@ export class CwCarbonableSell implements AbstractContract {
 
         const contract = this.data.address;
         const client = await this.keychain.getClient(wallet);
-        const response: State = await client.queryContractSmart(contract, {
+        return await client.queryContractSmart(contract, {
             dump_state: {}
         });
-
-        return response;
     }
 
     private async _execute(wallet: string) {
@@ -84,6 +84,13 @@ export class CwCarbonableSell implements AbstractContract {
         const { contract, client, sender } = await this._execute(wallet);
         return client.execute(sender,  contract, {
             buy: { }
+        }, 'auto', 'Buy', [coins]);
+    }
+
+    async executMultieBuy(wallet: string, coins: Coin, quantity: number): Promise<ExecuteResult> {
+        const { contract, client, sender } = await this._execute(wallet);
+        return client.execute(sender,  contract, {
+            multi_buy: { quantity }
         }, 'auto', 'Buy', [coins]);
     }
 

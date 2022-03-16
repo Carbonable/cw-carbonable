@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
     pub maintenance_mode: bool,
+    pub max_buy_at_once: u32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -25,6 +26,9 @@ pub enum ExecuteMsg {
         metadata: Metadata,
     },
     Buy {},
+    MultiBuy {
+        quantity: u32,
+    },
 
     Airdrop {
         receivers: Vec<String>,

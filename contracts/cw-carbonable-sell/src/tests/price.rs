@@ -13,6 +13,7 @@ mod cw_carbonable {
     fn helper_instantiate(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) {
         let msg = InitMsg {
             maintenance_mode: false,
+            max_buy_at_once: 5,
         };
 
         let info = mock_info("owner_addr", &coins(1000, "earth"));
@@ -144,5 +145,142 @@ mod cw_carbonable {
         assert_eq!(1, state.total_market_supply);
         assert_eq!(0, state.total_reserved_minted);
         assert_eq!(1, state.total_market_minted);
+    }
+
+    #[test]
+    fn multi_buy() {
+        let mut deps = mock_dependencies_with_balance(&coins(2, "token"));
+
+        helper_instantiate(&mut deps);
+
+        let info = mock_info("owner_addr", &[]);
+        let _ = execute(
+            deps.as_mut(),
+            mock_env(),
+            info,
+            ExecuteMsg::UpdateSupply {
+                reserved_supply: 0,
+                market_supply: 9,
+            },
+        );
+
+        //
+        // try with too big quantity
+        //
+        let info = mock_info("anon1", &[coin(2_u128, String::from("ujuno"))]);
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            info,
+            ExecuteMsg::MultiBuy { quantity: 6 },
+        );
+
+        assert!(res.is_err());
+        match res.err().unwrap() {
+            ContractError::MultiBuyQuantityTooHigh {} => {}
+            _ => unreachable!(),
+        }
+
+        let info = mock_info("anon1", &[coin(99_u128, String::from("ujuno"))]);
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            info,
+            ExecuteMsg::MultiBuy { quantity: 5 },
+        );
+
+        assert!(res.is_err());
+        match res.err().unwrap() {
+            ContractError::NotEnoughMoneyForNft {} => {}
+            _ => unreachable!(),
+        }
+
+        //
+        // try with not enough funds...
+        //
+        let info = mock_info("anon1", &[coin(99_u128, String::from("ujuno"))]);
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            info,
+            ExecuteMsg::MultiBuy { quantity: 5 },
+        );
+
+        assert!(res.is_err());
+        match res.err().unwrap() {
+            ContractError::NotEnoughMoneyForNft {} => {}
+            _ => unreachable!(),
+        }
+
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::DumpState {}).unwrap();
+        let state: State = from_binary(&res).unwrap();
+        assert_eq!(0, state.total_reserved_supply);
+        assert_eq!(9, state.total_market_supply);
+        assert_eq!(0, state.total_reserved_minted);
+        assert_eq!(0, state.total_market_minted);
+
+        //
+        // try multi buy ok...
+        //
+        let info = mock_info("anon1", &[coin(100_u128, String::from("ujuno"))]);
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            info,
+            ExecuteMsg::MultiBuy { quantity: 5 },
+        );
+
+        assert!(res.is_ok());
+
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::DumpState {}).unwrap();
+        let state: State = from_binary(&res).unwrap();
+        assert_eq!(0, state.total_reserved_supply);
+        assert_eq!(9, state.total_market_supply);
+        assert_eq!(0, state.total_reserved_minted);
+        assert_eq!(5, state.total_market_minted);
+
+        //
+        // Not enough supply...
+        //
+        let info = mock_info("anon1", &[coin(100_u128, String::from("ujuno"))]);
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            info,
+            ExecuteMsg::MultiBuy { quantity: 5 },
+        );
+
+        assert!(res.is_err());
+        match res.err().unwrap() {
+            ContractError::NotEnoughNftLeft {} => {}
+            _ => unreachable!(),
+        }
+
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::DumpState {}).unwrap();
+        let state: State = from_binary(&res).unwrap();
+        assert_eq!(0, state.total_reserved_supply);
+        assert_eq!(9, state.total_market_supply);
+        assert_eq!(0, state.total_reserved_minted);
+        assert_eq!(5, state.total_market_minted);
+
+        //
+        // Buy what is left
+        //
+        let info = mock_info("anon1", &[coin(80_u128, String::from("ujuno"))]);
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            info,
+            ExecuteMsg::MultiBuy { quantity: 4 },
+        );
+
+        assert!(res.is_ok());
+
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::DumpState {}).unwrap();
+        let state: State = from_binary(&res).unwrap();
+        assert_eq!(0, state.total_reserved_supply);
+        assert_eq!(9, state.total_market_supply);
+        assert_eq!(0, state.total_reserved_minted);
+        assert_eq!(9, state.total_market_minted);
     }
 }

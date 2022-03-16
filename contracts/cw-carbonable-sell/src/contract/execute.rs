@@ -3,7 +3,7 @@ use crate::state::{State, ADMIN_WALLETS, MAINTENANCE_MODE, NFT_CONTRACT, OWNER_W
 use crate::ContractError;
 use cosmwasm_std::{
     has_coins, to_binary, Addr, BankMsg, Coin, CosmosMsg, DepsMut, Env, MessageInfo, Response,
-    WasmMsg,
+    Uint128, WasmMsg,
 };
 use cw_carbonable_lib::{Extension, Metadata};
 use std::collections::HashSet;
@@ -16,6 +16,7 @@ pub fn _execute(
 ) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::Buy {} => try_buy(deps, info),
+        ExecuteMsg::MultiBuy { quantity } => try_multi_buy(deps, info, quantity),
         ExecuteMsg::Airdrop { receivers } => try_airdrop(deps, info, receivers),
         ExecuteMsg::Withdraw { wallet, coin } => try_withdraw(deps, info, wallet, coin),
         ExecuteMsg::MaintenanceMode { enable } => switch_mainteanance_mode(deps, info, enable),
@@ -55,7 +56,7 @@ pub fn try_buy(deps: DepsMut, info: MessageInfo) -> Result<Response, ContractErr
         msg: to_binary(&mint_helper(
             state.last_token_id,
             info.sender.to_string(),
-            &state,
+            state.clone(),
         ))?,
         funds: vec![],
     }));
@@ -64,6 +65,53 @@ pub fn try_buy(deps: DepsMut, info: MessageInfo) -> Result<Response, ContractErr
     STATE.save(deps.storage, &state)?;
 
     Ok(response.add_attribute("method", "try_buy"))
+}
+
+pub fn try_multi_buy(
+    deps: DepsMut,
+    info: MessageInfo,
+    quantity: u32,
+) -> Result<Response, ContractError> {
+    // load state
+    let mut state = STATE.load(deps.storage)?;
+
+    // Is contract in maintenance ?
+    is_in_maintenance(&deps)?;
+
+    // Check quantity validity
+    is_multi_buy_quantity_too_big(quantity, &state)?;
+
+    state.total_market_minted += quantity;
+    // Is some NFT available ?
+    is_market_nft_available(&state)?;
+
+    // Does the buy has enough coins ?
+    let mut sell_price = state.sell_price.clone();
+    sell_price.amount *= Uint128::from(quantity);
+    if !has_coins(info.funds.as_slice(), &sell_price) {
+        return Err(ContractError::NotEnoughMoneyForNft {});
+    }
+
+    let mut response = Response::new();
+    for _ in 0..quantity {
+        // Bump last_token_id ?
+        state.last_token_id += 1;
+
+        response = response.add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: NFT_CONTRACT.load(deps.storage)?.to_string(),
+            msg: to_binary(&mint_helper(
+                state.last_token_id,
+                info.sender.to_string(),
+                state.clone(),
+            ))?,
+            funds: vec![],
+        }));
+    }
+
+    // Update contract state
+    STATE.save(deps.storage, &state)?;
+
+    Ok(response.add_attribute("method", "try_multi_buy"))
 }
 
 pub fn update_nft_contract(
@@ -139,7 +187,11 @@ pub fn try_airdrop(
 
         response = response.add_message(CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: NFT_CONTRACT.load(deps.storage)?.to_string(),
-            msg: to_binary(&mint_helper(state.last_token_id, recv.to_string(), &state))?,
+            msg: to_binary(&mint_helper(
+                state.last_token_id,
+                recv.to_string(),
+                state.clone(),
+            ))?,
             funds: vec![],
         }))
     }
@@ -310,13 +362,13 @@ pub fn add_admin(
     Ok(response.add_attribute("method", "add_admin"))
 }
 
-fn mint_helper(nft_id: u32, addr: String, state: &State) -> cw_carbonable_lib::ExecuteMsg {
+fn mint_helper(nft_id: u32, addr: String, state: State) -> cw_carbonable_lib::ExecuteMsg {
     cw_carbonable_lib::ExecuteMsg::Mint(cw721_base::MintMsg::<Extension> {
         token_id: nft_id.to_string(),
 
         owner: addr,
         token_uri: None,
-        extension: Extension::from(state.metadata.clone()),
+        extension: Extension::from(state.metadata),
     })
 }
 
@@ -339,6 +391,14 @@ pub fn is_market_nft_available(state: &State) -> Result<(), ContractError> {
 pub fn is_reserved_nft_available(state: &State) -> Result<(), ContractError> {
     if state.total_reserved_minted > state.total_reserved_supply {
         return Err(ContractError::NotEnoughNftLeft {});
+    }
+
+    Ok(())
+}
+
+pub fn is_multi_buy_quantity_too_big(quantity: u32, state: &State) -> Result<(), ContractError> {
+    if quantity > state.max_buy_at_once {
+        return Err(ContractError::MultiBuyQuantityTooHigh {});
     }
 
     Ok(())

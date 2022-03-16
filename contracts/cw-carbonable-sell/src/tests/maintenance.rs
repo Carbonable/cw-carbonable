@@ -12,6 +12,7 @@ mod cw_carbonable {
     fn helper_instantiate(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) {
         let msg = InitMsg {
             maintenance_mode: true,
+            max_buy_at_once: 5,
         };
 
         let info = mock_info("owner_addr", &coins(1000, "earth"));
@@ -52,6 +53,27 @@ mod cw_carbonable {
 
         let info = mock_info("test", &[]);
         let res = execute(deps.as_mut(), mock_env(), info, ExecuteMsg::Buy {});
+
+        assert!(res.is_err());
+        match res.err().unwrap() {
+            ContractError::InMaintenance {} => {}
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn maintenance_multi_buy() {
+        let mut deps = mock_dependencies_with_balance(&coins(2, "token"));
+
+        helper_instantiate(&mut deps);
+
+        let info = mock_info("test", &[]);
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            info,
+            ExecuteMsg::MultiBuy { quantity: 2 },
+        );
 
         assert!(res.is_err());
         match res.err().unwrap() {
