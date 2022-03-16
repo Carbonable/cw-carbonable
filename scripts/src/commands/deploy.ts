@@ -30,9 +30,33 @@ async function connect() {
             description: config.description,
             attributes: [
                 {
+                    trait_type: "name",
+                    value: "Pantai Lailiang",
+                },
+                {
+                    trait_type: "holder",
+                    value: "Reforest'Action",
+                },
+                {
+                    trait_type: "certifier",
+                    value: "REDD+",
+                },
+                {
+                    trait_type: "land",
+                    value: "8349",
+                },
+                {
                     trait_type: "country",
-                    value: "Colombia",
-                }
+                    value: "Indonesia",
+                },
+                {
+                    trait_type: "expliration",
+                    value: "2046",
+                },
+                {
+                    trait_type: "av",
+                    value: "true",
+                },
             ],
         });
         logger.debug('Update metadata', updateMetadataResponse);
