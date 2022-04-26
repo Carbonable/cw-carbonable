@@ -11,19 +11,14 @@ async function connect() {
         return ;
     }
 
-    await sellContract.executeMaintenanceMode(Keychain.ADMIN, true);
-
-    try {
-        await sellContract.executeAirdrop(Keychain.ADMIN, []);
-        logger.error('error should have thrown an error');
-    } catch (err) {
-        logger.error('catch', err);
-    }
-
-    await sellContract.executeMaintenanceMode(Keychain.ADMIN, false);
     await sellContract.executeAirdrop(Keychain.ADMIN, []);
 
-
+    await sellContract.executeSellMode(Keychain.ADMIN, false);
+    await sellContract.executePreSellMode(Keychain.ADMIN, true);
+    await sellContract.executeAddToWhitelist(Keychain.ADMIN, [{
+        address: await keychain.getAddress(Keychain.ANON),
+        nb_slots: 5
+    }]);
     await sellContract.executMultieBuy(Keychain.ANON, { denom: config.denom, amount: (config.sellPrice * 5).toString()}, 5)
     logger.info(await nftContract.queryNumTokens(Keychain.ANON));
     logger.info(await sellContract.queryState(Keychain.ANON));

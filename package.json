@@ -6,7 +6,7 @@
   "scripts": {
     "deploy": "ts-node scripts/src/commands/deploy.ts",
     "withdraw": "ts-node scripts/src/commands/withdraw.ts",
-    "maintenance": "ts-node scripts/src/commands/maintenance.ts",
+    "presale": "ts-node scripts/src/commands/presale.ts",
     "test:smoke": "ts-node scripts/src/commands/airdrop_2_buy_3.ts"
   },
   "dependencies": {

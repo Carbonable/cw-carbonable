@@ -5,8 +5,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
-    pub maintenance_mode: bool,
+    pub sell_mode: bool,
+    pub pre_sell_mode: bool,
     pub max_buy_at_once: u32,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct WhiteListEntry {
+    pub address: String,
+    pub nb_slots: u32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -29,7 +36,6 @@ pub enum ExecuteMsg {
     MultiBuy {
         quantity: u32,
     },
-
     Airdrop {
         receivers: Vec<String>,
     },
@@ -37,8 +43,14 @@ pub enum ExecuteMsg {
         wallet: Addr,
         coin: Vec<Coin>,
     },
-    MaintenanceMode {
+    PreSellMode {
         enable: bool,
+    },
+    SellMode {
+        enable: bool,
+    },
+    AddToWhitelist {
+        entries: Vec<WhiteListEntry>,
     },
 
     /// Roles mgmt

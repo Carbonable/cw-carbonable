@@ -33,6 +33,11 @@ export interface Metadata {
     youtube_url?: string,
 }
 
+export interface WhiteListEntry {
+    address: string,
+    nb_slots: number,
+}
+
 export class CwCarbonableSell implements AbstractContract {
     readonly name = 'cw-carbonable-sell';
     data?: ContractData;
@@ -47,7 +52,8 @@ export class CwCarbonableSell implements AbstractContract {
 
     async instantiatePayload(): Promise<Record<string, unknown>> {
         return {
-            maintenance_mode: false,
+            sell_mode: false,
+            pre_sell_mode: false,
             max_buy_at_once: config.maxBuyAtOnce,
         }
     }
@@ -108,10 +114,24 @@ export class CwCarbonableSell implements AbstractContract {
         }, 'auto');
     }
 
-    async executeMaintenanceMode(wallet: string, enabled: boolean): Promise<ExecuteResult> {
+    async executePreSellMode(wallet: string, enable: boolean): Promise<ExecuteResult> {
         const { contract, client, sender } = await this._execute(wallet);
         return client.execute(sender,  contract, {
-            maintenance_mode: { enable: enabled }
+            pre_sell_mode: { enable }
+        }, 'auto');
+    }
+
+    async executeSellMode(wallet: string, enable: boolean): Promise<ExecuteResult> {
+        const { contract, client, sender } = await this._execute(wallet);
+        return client.execute(sender,  contract, {
+            sell_mode: { enable }
+        }, 'auto');
+    }
+
+    async executeAddToWhitelist(wallet: string, entries: WhiteListEntry[]): Promise<ExecuteResult> {
+        const { contract, client, sender } = await this._execute(wallet);
+        return client.execute(sender,  contract, {
+            add_to_whitelist: { entries }
         }, 'auto');
     }
 

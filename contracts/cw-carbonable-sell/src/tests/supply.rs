@@ -12,7 +12,8 @@ mod cw_carbonable {
 
     fn helper_instantiate(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) {
         let msg = InitMsg {
-            maintenance_mode: false,
+            pre_sell_mode: false,
+            sell_mode: true,
             max_buy_at_once: 5,
         };
 

@@ -9,8 +9,14 @@ pub enum ContractError {
     #[error("Unauthorized")]
     Unauthorized {},
 
-    #[error("Maintenance activated")]
-    InMaintenance {},
+    #[error("Sell close")]
+    SellClose {},
+
+    #[error("Address not whitelisted")]
+    AddressNotWhitelisted {},
+
+    #[error("No slot available left")]
+    NoSlotAvailableLeft {},
 
     #[error("Not enought nft left")]
     NotEnoughNftLeft {},

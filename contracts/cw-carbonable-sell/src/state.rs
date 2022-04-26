@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use cosmwasm_std::{Addr, Coin};
 use cw_carbonable_lib::Metadata;
-use cw_storage_plus::Item;
+use cw_storage_plus::{Item, Map};
 
 pub type TokenID = String;
 
@@ -44,5 +44,11 @@ pub const ADMIN_WALLETS: Item<HashSet<Addr>> = Item::new("admin_wallets");
 /// * add nft_ids to track
 pub const NFT_CONTRACT: Item<Addr> = Item::new("nft_contract");
 
-/// Is maintenance mode enabled
-pub const MAINTENANCE_MODE: Item<bool> = Item::new("maintenance_mode");
+/// Sale is activated
+pub const SELL_MODE: Item<bool> = Item::new("sell_mode");
+
+/// Pre Sale activated
+pub const PRE_SELL_MODE: Item<bool> = Item::new("pre_sell_mode");
+
+/// WhiteList map
+pub const WHITELIST: Map<Addr, u32> = Map::new("whitelist");

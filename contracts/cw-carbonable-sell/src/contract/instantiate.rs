@@ -1,6 +1,8 @@
 use crate::contract::{CONTRACT_NAME, CONTRACT_VERSION};
 use crate::msg::InitMsg;
-use crate::state::{State, ADMIN_WALLETS, MAINTENANCE_MODE, NFT_CONTRACT, OWNER_WALLET, STATE};
+use crate::state::{
+    State, ADMIN_WALLETS, NFT_CONTRACT, OWNER_WALLET, PRE_SELL_MODE, SELL_MODE, STATE,
+};
 use crate::ContractError;
 use cosmwasm_std::{coin, Addr, DepsMut, MessageInfo, Response};
 use cw2::set_contract_version;
@@ -21,8 +23,9 @@ pub fn _instantiate(
     // empty list of admins
     ADMIN_WALLETS.save(deps.storage, &HashSet::new())?;
 
-    // set maintenance mode
-    MAINTENANCE_MODE.save(deps.storage, &msg.maintenance_mode)?;
+    // set sales mode
+    SELL_MODE.save(deps.storage, &msg.sell_mode)?;
+    PRE_SELL_MODE.save(deps.storage, &msg.pre_sell_mode)?;
 
     let state = State {
         total_market_supply: 0,

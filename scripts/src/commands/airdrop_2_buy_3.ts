@@ -19,6 +19,8 @@ async function connect() {
         amount: buyPrice,
     });
 
+    await sellContract.executeSellMode(Keychain.OWNER, true);
+
     await sellContract.executeAirdrop(Keychain.ADMIN, [anonAddr]);
 
     await sellContract.executeBuy(Keychain.OWNER, {

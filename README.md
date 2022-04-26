@@ -56,8 +56,14 @@ How to deploy :
 bash $ yarn run deploy
 ```
 
-An example of a script is given in scrips/src/commands/maintenance.ts, you can use it doing :
+An example of a script is given in scrips/src/commands/presale.ts, you can use it doing :
 
 ```shell
-bash $ yarn run maintenance
+bash $ yarn run presale
 ```
+
+### Changelog v2
+ - No maintenance mode anymore.
+ - you can airdrop even when the sale/presale are closed.
+ - add SaleMode mechanism to enable the sell
+ - add PreSaleMode mechanism to enable the whitelisted sale

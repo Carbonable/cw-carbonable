@@ -1,5 +1,7 @@
-use crate::msg::ExecuteMsg;
-use crate::state::{State, ADMIN_WALLETS, MAINTENANCE_MODE, NFT_CONTRACT, OWNER_WALLET, STATE};
+use crate::msg::{ExecuteMsg, WhiteListEntry};
+use crate::state::{
+    State, ADMIN_WALLETS, NFT_CONTRACT, OWNER_WALLET, PRE_SELL_MODE, SELL_MODE, STATE, WHITELIST,
+};
 use crate::ContractError;
 use cosmwasm_std::{
     has_coins, to_binary, Addr, BankMsg, Coin, CosmosMsg, DepsMut, Env, MessageInfo, Response,
@@ -19,7 +21,9 @@ pub fn _execute(
         ExecuteMsg::MultiBuy { quantity } => try_multi_buy(deps, info, quantity),
         ExecuteMsg::Airdrop { receivers } => try_airdrop(deps, info, receivers),
         ExecuteMsg::Withdraw { wallet, coin } => try_withdraw(deps, info, wallet, coin),
-        ExecuteMsg::MaintenanceMode { enable } => switch_mainteanance_mode(deps, info, enable),
+        ExecuteMsg::PreSellMode { enable } => try_pre_sell_mode(deps, info, enable),
+        ExecuteMsg::SellMode { enable } => try_sell_mode(deps, info, enable),
+        ExecuteMsg::AddToWhitelist { entries } => try_update_whitelist(deps, info, entries),
         ExecuteMsg::UpdatePrice { price } => update_price(deps, info, price),
         ExecuteMsg::UpdateSupply {
             reserved_supply,
@@ -32,12 +36,11 @@ pub fn _execute(
     }
 }
 
-pub fn try_buy(deps: DepsMut, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn try_buy(mut deps: DepsMut, info: MessageInfo) -> Result<Response, ContractError> {
     // load state
     let mut state = STATE.load(deps.storage)?;
 
-    // Is contract in maintenance ?
-    is_in_maintenance(&deps)?;
+    is_sell_available(&mut deps, &info, 1)?;
 
     state.total_market_minted += 1;
     // Is some NFT available ?
@@ -68,15 +71,14 @@ pub fn try_buy(deps: DepsMut, info: MessageInfo) -> Result<Response, ContractErr
 }
 
 pub fn try_multi_buy(
-    deps: DepsMut,
+    mut deps: DepsMut,
     info: MessageInfo,
     quantity: u32,
 ) -> Result<Response, ContractError> {
     // load state
     let mut state = STATE.load(deps.storage)?;
 
-    // Is contract in maintenance ?
-    is_in_maintenance(&deps)?;
+    is_sell_available(&mut deps, &info, quantity)?;
 
     // Check quantity validity
     is_multi_buy_quantity_too_big(quantity, &state)?;
@@ -119,9 +121,6 @@ pub fn update_nft_contract(
     info: MessageInfo,
     address: String,
 ) -> Result<Response, ContractError> {
-    // Is contract in maintenance ?
-    is_in_maintenance(&deps)?;
-
     // Is admin or owner wallet ?
     is_admin_or_owner(&deps, info)?;
 
@@ -144,9 +143,6 @@ pub fn update_metadata(
     // load state
     let mut state = STATE.load(deps.storage)?;
 
-    // Is contract in maintenance ?
-    is_in_maintenance(&deps)?;
-
     // Is admin or owner wallet ?
     is_admin_or_owner(&deps, info)?;
 
@@ -166,9 +162,6 @@ pub fn try_airdrop(
 ) -> Result<Response, ContractError> {
     // load state
     let mut state = STATE.load(deps.storage)?;
-
-    // Is contract in maintenance ?
-    is_in_maintenance(&deps)?;
 
     // Is admin or owner wallet ?
     is_admin_or_owner(&deps, info)?;
@@ -208,9 +201,6 @@ pub fn try_withdraw(
     wallet: Addr,
     coin: Vec<Coin>,
 ) -> Result<Response, ContractError> {
-    // Is contract in maintenance ?
-    is_in_maintenance(&deps)?;
-
     // Is admin or owner wallet ?
     is_admin_or_owner(&deps, info)?;
 
@@ -223,7 +213,7 @@ pub fn try_withdraw(
         .add_attribute("method", "try_withdraw"))
 }
 
-pub fn switch_mainteanance_mode(
+pub fn try_sell_mode(
     deps: DepsMut,
     info: MessageInfo,
     enable: bool,
@@ -231,11 +221,45 @@ pub fn switch_mainteanance_mode(
     // Is admin or owner wallet ?
     is_admin_or_owner(&deps, info)?;
 
-    MAINTENANCE_MODE.save(deps.storage, &enable)?;
+    SELL_MODE.save(deps.storage, &enable)?;
 
-    Ok(Response::new()
-        .add_attribute("method", "switch_mainteanance_mode")
-        .add_attribute("status", enable.to_string()))
+    Ok(Response::new().add_attribute("method", "try_sell_mode"))
+}
+
+pub fn try_pre_sell_mode(
+    deps: DepsMut,
+    info: MessageInfo,
+    enable: bool,
+) -> Result<Response, ContractError> {
+    // Is admin or owner wallet ?
+    is_admin_or_owner(&deps, info)?;
+
+    PRE_SELL_MODE.save(deps.storage, &enable)?;
+
+    Ok(Response::new().add_attribute("method", "try_pre_sell_mode"))
+}
+
+pub fn try_update_whitelist(
+    deps: DepsMut,
+    info: MessageInfo,
+    entries: Vec<WhiteListEntry>,
+) -> Result<Response, ContractError> {
+    // Is admin or owner wallet ?
+    is_admin_or_owner(&deps, info)?;
+
+    // Update contract state
+    for authorized in entries {
+        match deps.api.addr_validate(&authorized.address) {
+            Ok(addr) => WHITELIST.save(deps.storage, addr, &authorized.nb_slots)?,
+            Err(_e) => {
+                return Err(ContractError::InvalidAddress {
+                    address: authorized.address,
+                })
+            }
+        }
+    }
+
+    Ok(Response::new().add_attribute("method", "update_price"))
 }
 
 pub fn update_price(
@@ -245,9 +269,6 @@ pub fn update_price(
 ) -> Result<Response, ContractError> {
     // load state
     let mut state = STATE.load(deps.storage)?;
-
-    // Is contract in maintenance ?
-    is_in_maintenance(&deps)?;
 
     // Is admin or owner wallet ?
     is_admin_or_owner(&deps, info)?;
@@ -268,9 +289,6 @@ pub fn update_supply(
 ) -> Result<Response, ContractError> {
     // load state
     let mut state = STATE.load(deps.storage)?;
-
-    // Is contract in maintenance ?
-    is_in_maintenance(&deps)?;
 
     // Is admin or owner wallet ?
     is_admin_or_owner(&deps, info)?;
@@ -293,9 +311,6 @@ pub fn remove_admin(
     info: MessageInfo,
     address: String,
 ) -> Result<Response, ContractError> {
-    // Is contract in maintenance ?
-    is_in_maintenance(&deps)?;
-
     // Security : owner has all rights
     is_admin_or_owner(&deps, info)?;
 
@@ -330,9 +345,6 @@ pub fn add_admin(
     info: MessageInfo,
     address: String,
 ) -> Result<Response, ContractError> {
-    // Is contract in maintenance ?
-    is_in_maintenance(&deps)?;
-
     // Security : owner has all rights
     is_admin_or_owner(&deps, info)?;
 
@@ -372,14 +384,6 @@ fn mint_helper(nft_id: u32, addr: String, state: State) -> cw_carbonable_lib::Ex
     })
 }
 
-pub fn is_in_maintenance(deps: &DepsMut) -> Result<(), ContractError> {
-    if MAINTENANCE_MODE.load(deps.storage)? {
-        return Err(ContractError::InMaintenance {});
-    }
-
-    Ok(())
-}
-
 pub fn is_market_nft_available(state: &State) -> Result<(), ContractError> {
     if state.total_market_minted > state.total_market_supply {
         return Err(ContractError::NotEnoughNftLeft {});
@@ -399,6 +403,42 @@ pub fn is_reserved_nft_available(state: &State) -> Result<(), ContractError> {
 pub fn is_multi_buy_quantity_too_big(quantity: u32, state: &State) -> Result<(), ContractError> {
     if quantity > state.max_buy_at_once {
         return Err(ContractError::MultiBuyQuantityTooHigh {});
+    }
+
+    Ok(())
+}
+
+pub fn is_sell_available(
+    deps: &mut DepsMut,
+    info: &MessageInfo,
+    nb_to_buy: u32,
+) -> Result<(), ContractError> {
+    let is_sell_open = SELL_MODE.load(deps.storage)?;
+    let is_pre_sell_open = PRE_SELL_MODE.load(deps.storage)?;
+
+    // Is sell open ?
+    if !is_sell_open && !is_pre_sell_open {
+        return Err(ContractError::SellClose {});
+    }
+
+    // Check for whitelist
+    if !is_sell_open {
+        // Check if send is in whitelist ?
+        if !WHITELIST.has(deps.storage, info.sender.clone()) {
+            return Err(ContractError::AddressNotWhitelisted {});
+        }
+
+        // load nb slot available
+        let mut nb_slot = WHITELIST.load(deps.storage, info.sender.clone())?;
+
+        // No slot available throw error
+        if nb_slot < nb_to_buy {
+            return Err(ContractError::NoSlotAvailableLeft {});
+        }
+
+        // burn user slot
+        nb_slot -= nb_to_buy;
+        WHITELIST.save(deps.storage, info.sender.clone(), &nb_slot)?;
     }
 
     Ok(())
