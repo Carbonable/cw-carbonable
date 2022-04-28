@@ -17,7 +17,7 @@ async function connect() {
     await sellContract.executePreSellMode(Keychain.ADMIN, true);
     await sellContract.executeAddToWhitelist(Keychain.ADMIN, [{
         address: await keychain.getAddress(Keychain.ANON),
-        nb_slots: 5
+        nb_slots: 1
     }]);
     await sellContract.executMultieBuy(Keychain.ANON, { denom: config.denom, amount: (config.sellPrice * 5).toString()}, 5)
     logger.info(await nftContract.queryNumTokens(Keychain.ANON));
