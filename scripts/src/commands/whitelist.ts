@@ -20,6 +20,7 @@ async function connect() {
     }
     const address = question('Address: ');
     const slots = question('Slots: ');
+    logger.info(`Whitelisting ${address} for ${slots}`);
     await sellContract.executeAddToWhitelist(Keychain.ADMIN, [{
         address: address,
         nb_slots: +slots
