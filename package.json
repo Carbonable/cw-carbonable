@@ -7,6 +7,7 @@
     "deploy": "ts-node scripts/src/commands/deploy.ts",
     "deploy:file": "ts-node scripts/src/commands/deploy_file.ts",
     "update:price": "ts-node scripts/src/commands/update_price.ts",
+    "update:supply": "ts-node scripts/src/commands/update_supply.ts",
     "withdraw": "ts-node scripts/src/commands/withdraw.ts",
     "presale": "ts-node scripts/src/commands/presale.ts",
     "test:smoke": "ts-node scripts/src/commands/airdrop_2_buy_3.ts",
