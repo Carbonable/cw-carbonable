@@ -375,11 +375,12 @@ pub fn add_admin(
 }
 
 fn mint_helper(nft_id: u32, addr: String, state: State) -> cw_carbonable_lib::ExecuteMsg {
+    let root_token_uri = state.metadata.external_url.clone().unwrap_or("".to_string());
+    let token_uri = format!("{}{}", root_token_uri, nft_id.to_string());
     cw_carbonable_lib::ExecuteMsg::Mint(cw721_base::MintMsg::<Extension> {
         token_id: nft_id.to_string(),
-
         owner: addr,
-        token_uri: None,
+        token_uri: Some(token_uri),
         extension: Extension::from(state.metadata),
     })
 }

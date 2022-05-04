@@ -9,6 +9,7 @@
     "presale": "ts-node scripts/src/commands/presale.ts",
     "test:smoke": "ts-node scripts/src/commands/airdrop_2_buy_3.ts",
     "open:private": "ts-node scripts/src/commands/open_presale.ts",
+    "query:token": "ts-node scripts/src/commands/query_token.ts",
     "whitelist": "ts-node scripts/src/commands/whitelist.ts",
     "close:private": "ts-node scripts/src/commands/close_presale.ts",
     "open:public": "ts-node scripts/src/commands/open_public_sale.ts",
