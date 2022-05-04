@@ -5,6 +5,7 @@
   "author": "Abdelhamid <abdel@carbonable.io>",
   "scripts": {
     "deploy": "ts-node scripts/src/commands/deploy.ts",
+    "deploy:file": "ts-node scripts/src/commands/deploy_file.ts",
     "withdraw": "ts-node scripts/src/commands/withdraw.ts",
     "presale": "ts-node scripts/src/commands/presale.ts",
     "test:smoke": "ts-node scripts/src/commands/airdrop_2_buy_3.ts",
