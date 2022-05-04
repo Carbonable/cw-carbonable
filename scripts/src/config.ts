@@ -15,9 +15,9 @@ export let config: ObjAny = {
     gasPrice: env.GAS_PRICE || '0.0025',
 
     // nft contract config
-    nftName: 'carbonable',
-    symbol: 'CARB',
-    collectionName: 'carbonable',
+    nftName: 'Banegas Farm',
+    symbol: 'CARBZ-COL-1',
+    collectionName: 'Banegas Farm',
     description: 'Invest in decarbonation through our Green DeFi Launchpad.',
 
     // sell config
