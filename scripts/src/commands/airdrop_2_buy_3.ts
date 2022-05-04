@@ -10,13 +10,12 @@ async function connect() {
     if (!alreadyUploaded) {
         return ;
     }
-    const buyPrice = '100000';
 
     const anonAddr = await keychain.getAddress(Keychain.ANON);
 
     await sellContract.executeUpdatePrice(Keychain.OWNER, {
         denom: config.denom,
-        amount: buyPrice,
+        amount: `${config.sellPrice}`,
     });
 
     await sellContract.executeSellMode(Keychain.OWNER, true);
@@ -25,19 +24,20 @@ async function connect() {
 
     await sellContract.executeBuy(Keychain.OWNER, {
         denom: config.denom,
-        amount: buyPrice,
+        amount: `${config.sellPrice}`,
     });
 
     await sellContract.executeBuy(Keychain.OWNER, {
         denom: config.denom,
-        amount: buyPrice,
+        amount: `${config.sellPrice}`,
     });
 
     logger.info('anon balance : ', await keychain.getBalance(Keychain.ANON));
 
+    const withdrawAmount = 2 * config.sellPrice;
     await sellContract.executeWithdraw(Keychain.ADMIN, anonAddr, {
         denom: config.denom,
-        amount: '200000',
+        amount: `${withdrawAmount}`,
     });
 
     logger.info('anon balance : ', await keychain.getBalance(Keychain.ANON));
