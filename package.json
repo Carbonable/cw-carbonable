@@ -12,6 +12,7 @@
     "open:private": "ts-node scripts/src/commands/open_presale.ts",
     "query:token": "ts-node scripts/src/commands/query_token.ts",
     "whitelist": "ts-node scripts/src/commands/whitelist.ts",
+    "whitelist:file": "ts-node scripts/src/commands/whitelist_file.ts",
     "close:private": "ts-node scripts/src/commands/close_presale.ts",
     "open:public": "ts-node scripts/src/commands/open_public_sale.ts",
     "close:public": "ts-node scripts/src/commands/close_public_sale.ts"
