@@ -15,15 +15,15 @@ export let config: ObjAny = {
     gasPrice: env.GAS_PRICE || '0.0025',
 
     // nft contract config
-    nftName: 'Banegas Farm',
-    symbol: 'CARBZ-COL-1',
-    collectionName: 'Banegas Farm',
+    nftName: 'Las delicias',
+    symbol: 'CARBZ-COL-2',
+    collectionName: 'Las delicias',
     description: 'Invest in decarbonation through our Green DeFi Launchpad.',
 
     // sell config
     sellPrice: 10000000,
-    sellReservedAmount: 0,
-    sellMarketAmount: 160,
+    sellReservedAmount: 4,
+    sellMarketAmount: 356,
     maxBuyAtOnce: 5,
     owner_mnemonic: process.env.OWNER_MNEMONIC,
     admin_mnemonic: process.env.ADMIN_MNEMONIC,

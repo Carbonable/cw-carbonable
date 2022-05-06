@@ -43,7 +43,7 @@ async function connect() {
         const updateMetadataResponse = await sellContract.executeUpdateMetadata(Keychain.ADMIN, {
             name: config.collectionName,
             description: config.description,
-            image: "https://firebasestorage.googleapis.com/v0/b/carbonable-projects/o/1%2Fcard.jpg?alt=media&token=fa79e732-9547-40f6-94f5-e941603645ac",
+            image: "https://firebasestorage.googleapis.com/v0/b/carbonable-token.appspot.com/o/projects%2F2%2Fcard.jpeg?alt=media&token=eb55aa59-19ba-492e-b132-823357e558b7",
             external_url: "ipfs://carbonable/",
             attributes: attributes,
         });
