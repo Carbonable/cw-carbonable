@@ -6,6 +6,7 @@
   "scripts": {
     "deploy": "ts-node scripts/src/commands/deploy_file.ts",
     "update:price": "ts-node scripts/src/commands/update_price.ts",
+    "update:metadata": "ts-node scripts/src/commands/update_metadata.ts",
     "update:supply": "ts-node scripts/src/commands/update_supply.ts",
     "withdraw": "ts-node scripts/src/commands/withdraw.ts",
     "presale": "ts-node scripts/src/commands/presale.ts",
