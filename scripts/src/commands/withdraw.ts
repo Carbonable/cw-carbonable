@@ -14,7 +14,7 @@ async function connect() {
 
     await sellContract.executeWithdraw(Keychain.ADMIN, ownerAddr, {
         denom: config.denom,
-        amount: '1568000000',
+        amount: '4592400000',
     });
 
 }

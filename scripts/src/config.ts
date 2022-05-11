@@ -21,7 +21,7 @@ export let config: ObjAny = {
     description: 'Invest in decarbonation through our Green DeFi Launchpad.',
 
     // sell config
-    sellPrice: 10000000,
+    sellPrice: 12900000,
     sellReservedAmount: 4,
     sellMarketAmount: 356,
     maxBuyAtOnce: 5,

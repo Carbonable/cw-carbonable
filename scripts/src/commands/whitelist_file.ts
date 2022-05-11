@@ -15,15 +15,19 @@ const rl = readline.createInterface({
 
 
 async function connect() {
-    const { keychain, contracts, nftContract, sellContract, alreadyUploaded } = await load();
-    if (!alreadyUploaded) {
-        return ;
+    try{
+        const { keychain, contracts, nftContract, sellContract, alreadyUploaded } = await load();
+        if (!alreadyUploaded) {
+            return ;
+        }
+        const whitelistFilePath = question('Whitelist file path: ');
+        logger.info('Reading whitelist file: ', whitelistFilePath);
+        const rawWhitelist = readFileSync(whitelistFilePath);
+        const whitelist = JSON.parse(rawWhitelist.toString());
+        await sellContract.executeAddToWhitelist(Keychain.ADMIN, whitelist);
+    }catch(e){
+        logger.error(e);
     }
-    const whitelistFilePath = question('Whitelist file path: ');
-    logger.info('Reading whitelist file: ', whitelistFilePath);
-    const rawWhitelist = readFileSync(whitelistFilePath);
-    const whitelist = JSON.parse(rawWhitelist.toString());
-    await sellContract.executeAddToWhitelist(Keychain.ADMIN, whitelist);
 }
 
 connect().then(() => {
